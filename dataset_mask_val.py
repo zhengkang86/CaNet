@@ -11,26 +11,20 @@ import time
 
 
 class Dataset(object):
-
-
     def __init__(self, data_dir, fold, input_size=[321, 321], normalize_mean=[0, 0, 0],
                  normalize_std=[1, 1, 1]):
-
         self.data_dir = data_dir
-
         self.input_size = input_size
-
-        #random sample 1000 pairs
+        # random sample 1000 pairs
         self.chosen_data_list_1 = self.get_new_exist_class_dict(fold=fold)
         chosen_data_list_2 = self.chosen_data_list_1[:]
         chosen_data_list_3 = self.chosen_data_list_1[:]
         random.shuffle(chosen_data_list_2)
         random.shuffle(chosen_data_list_3)
-        self.chosen_data_list=self.chosen_data_list_1+chosen_data_list_2+chosen_data_list_3
-        self.chosen_data_list=self.chosen_data_list[:1000]
+        self.chosen_data_list = self.chosen_data_list_1+chosen_data_list_2+chosen_data_list_3
+        self.chosen_data_list = self.chosen_data_list[:1000]
 
-
-        self.binary_pair_list = self.get_binary_pair_list()#a dict of each class, which contains all imgs that include this class
+        self.binary_pair_list = self.get_binary_pair_list()  # a dict of each class, which contains all imgs that include this class
         self.history_mask_list = [None] * 1000
         self.query_class_support_list=[None] * 1000
         for index in range (1000):
@@ -41,17 +35,14 @@ class Dataset(object):
                 support_name = support_img_list[random.randint(0, len(support_img_list) - 1)]
                 if support_name != query_name:
                     break
-            self.query_class_support_list[index]=[query_name,sample_class,support_name]
+            self.query_class_support_list[index] = [query_name, sample_class, support_name]
 
-
-
-        self.initiaize_transformation(normalize_mean, normalize_std, input_size)
+        self.initialize_transformation(normalize_mean, normalize_std, input_size)
         pass
 
     def get_new_exist_class_dict(self, fold):
         new_exist_class_list = []
-
-        f = open(os.path.join(self.data_dir, 'Binary_map_aug','val', 'split%1d_val.txt' % (fold)))
+        f = open(os.path.join(self.data_dir, 'Binary_map_aug','val', 'split%1d_val.txt' % fold))
         while True:
             item = f.readline()
             if item == '':
@@ -61,8 +52,7 @@ class Dataset(object):
             new_exist_class_list.append([img_name, cat])
         return new_exist_class_list
 
-
-    def initiaize_transformation(self, normalize_mean, normalize_std, input_size):
+    def initialize_transformation(self, normalize_mean, normalize_std, input_size):
         self.ToTensor = torchvision.transforms.ToTensor()
         self.normalize = torchvision.transforms.Normalize(normalize_mean, normalize_std)
 
@@ -73,8 +63,8 @@ class Dataset(object):
                 os.path.join(self.data_dir, 'Binary_map_aug', 'val', '%d.txt' % Class))
         return binary_pair_list
 
-    def read_txt(self, dir):
-        f = open(dir)
+    def read_txt(self, input_dir):
+        f = open(input_dir)
         out_list = []
         line = f.readline()
         while line:
@@ -87,9 +77,7 @@ class Dataset(object):
         # give an query index,sample a target class first
         query_name = self.query_class_support_list[index][0]
         sample_class = self.query_class_support_list[index][1]  # random sample a class in this img
-        support_name=self.query_class_support_list[index][2]
-
-
+        support_name = self.query_class_support_list[index][2]
 
         input_size = self.input_size[0]
         # random scale and crop for support
@@ -122,7 +110,7 @@ class Dataset(object):
 
         scale_transform_mask = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.NEAREST)
         scale_transform_rgb = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.BILINEAR)
-        flip_flag = 0#random.random()
+        flip_flag = 0  # random.random()
 
         query_rgb = self.normalize(
             self.ToTensor(
@@ -151,8 +139,6 @@ class Dataset(object):
         else:
 
             history_mask=self.history_mask_list[index]
-
-
 
         return query_rgb, query_mask, support_rgb, support_mask,history_mask,sample_class,index
 

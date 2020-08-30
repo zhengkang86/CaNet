@@ -12,25 +12,22 @@ from torch.utils.data import DataLoader
 import time
 
 
-
 class Dataset(object):
-
-
     def __init__(self, data_dir, fold, input_size=[321, 321] , normalize_mean=[0, 0, 0],
                  normalize_std=[1, 1, 1],prob=0.7):
         # -------------------load data list,[class,video_name]-------------------
         self.data_dir = data_dir
         self.new_exist_class_list = self.get_new_exist_class_dict(fold=fold)
-        self.initiaize_transformation(normalize_mean, normalize_std, input_size)
+        self.initialize_transformation(normalize_mean, normalize_std, input_size)
         self.binary_pair_list = self.get_binary_pair_list()
         self.input_size = input_size
         self.history_mask_list = [None] * self.__len__()
-        self.prob=prob#probability of sampling history masks=0
+        self.prob = prob  # probability of sampling history masks=0
 
     def get_new_exist_class_dict(self, fold):
         new_exist_class_list = []
 
-        fold_list=[0,1,2,3]
+        fold_list = [0, 1, 2, 3]
         fold_list.remove(fold)
         for fold in fold_list:
 
@@ -44,7 +41,7 @@ class Dataset(object):
                 new_exist_class_list.append([img_name, cat])
         return new_exist_class_list
 
-    def initiaize_transformation(self, normalize_mean, normalize_std, input_size):
+    def initialize_transformation(self, normalize_mean, normalize_std, input_size):
         self.ToTensor = torchvision.transforms.ToTensor()
         # self.resize = torchvision.transforms.Resize(input_size)
         self.normalize = torchvision.transforms.Normalize(normalize_mean, normalize_std)
@@ -56,8 +53,8 @@ class Dataset(object):
                 os.path.join(self.data_dir, 'Binary_map_aug', 'train', '%d.txt' % Class))
         return binary_pair_list
 
-    def read_txt(self, dir):
-        f = open(dir)
+    def read_txt(self, input_dir):
+        f = open(input_dir)
         out_list = []
         line = f.readline()
         while line:
@@ -106,15 +103,11 @@ class Dataset(object):
         support_rgb = support_rgb[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
         support_mask = support_mask[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
 
-
-
-
-
         # random scale and crop for query
         scaled_size = input_size  # random.randint(323, 350)
         scale_transform_mask = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.NEAREST)
         scale_transform_rgb = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.BILINEAR)
-        flip_flag = 0#random.random()
+        flip_flag = 0  #random.random()
 
         query_rgb = self.normalize(
             self.ToTensor(
@@ -136,18 +129,13 @@ class Dataset(object):
         query_rgb = query_rgb[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
         query_mask = query_mask[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
 
-
-
         if self.history_mask_list[index] is None:
-
-            history_mask=torch.zeros(2,41,41).fill_(0.0)
-
+            history_mask = torch.zeros(2,41,41).fill_(0.0)
         else:
-            if random.random()>self.prob:
-                history_mask=self.history_mask_list[index]
+            if random.random() > self.prob:
+                history_mask = self.history_mask_list[index]
             else:
                 history_mask = torch.zeros(2, 41, 41).fill_(0.0)
-
 
         return query_rgb, query_mask, support_rgb, support_mask,history_mask,sample_class,index
 
@@ -159,5 +147,3 @@ class Dataset(object):
 
     def __len__(self):
         return len(self.new_exist_class_list)
-
-
