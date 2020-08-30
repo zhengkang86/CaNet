@@ -28,15 +28,20 @@ parser.add_argument('-prob',
                     help='dropout rate of history mask',
                     default=0.7)
 
+parser.add_argument('-workers',
+                    type=int,
+                    help='workers',
+                    default=12)
+
 parser.add_argument('-bs',
                     type=int,
                     help='batchsize',
-                    default=4)
+                    default=48)
 
 parser.add_argument('-bs_val',
                     type=int,
                     help='batchsize for val',
-                    default=64)
+                    default=48)
 
 parser.add_argument('-fold',
                     type=int,
@@ -93,13 +98,13 @@ check_dir(checkpoint_dir)
 # trainset
 dataset = Dataset_train(data_dir=data_dir, fold=options.fold, input_size=input_size, normalize_mean=IMG_MEAN,
                         normalize_std=IMG_STD, prob=options.prob)
-trainloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+trainloader = data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=options.workers)
 
 # valset
 # this only a quick val dataset where all images are 321*321.
 valset = Dataset_val(data_dir=data_dir, fold=options.fold, input_size=input_size, normalize_mean=IMG_MEAN,
                      normalize_std=IMG_STD)
-valloader = data.DataLoader(valset, batch_size=options.bs_val, shuffle=False, num_workers=4,
+valloader = data.DataLoader(valset, batch_size=options.bs_val, shuffle=False, num_workers=options.workers,
                             drop_last=False)
 
 save_pred_every = len(trainloader)
