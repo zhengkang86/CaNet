@@ -59,7 +59,7 @@ parser.add_argument('-iter_time',
 
 options = parser.parse_args()
 
-data_dir = '/home/kang/data/VOC/VOCdevkit/VOC2012/'
+data_dir = '/home/kang/Projects/data/VOC/VOCdevkit/VOC2012/'
 
 # set gpus
 gpu_list = [int(x) for x in options.gpu.split(',')]

@@ -81,7 +81,7 @@ class Dataset(object):
 
         input_size = self.input_size[0]
         # random scale and crop for support
-        scaled_size = int(random.uniform(1,1.5)*input_size)
+        scaled_size = int(random.uniform(1, 1.5)*input_size)
         scale_transform_mask = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.NEAREST)
         scale_transform_rgb = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.BILINEAR)
         flip_flag = random.random()
@@ -133,14 +133,11 @@ class Dataset(object):
         query_mask = query_mask[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
 
         if self.history_mask_list[index] is None:
-
-            history_mask=torch.zeros(2,41,41).fill_(0.0)
-
+            history_mask=torch.zeros(2, 41, 41).fill_(0.0)
         else:
-
             history_mask=self.history_mask_list[index]
 
-        return query_rgb, query_mask, support_rgb, support_mask,history_mask,sample_class,index
+        return query_rgb, query_mask, support_rgb, support_mask, history_mask, sample_class, index
 
     def flip(self, flag, img):
         if flag > 0.5:
