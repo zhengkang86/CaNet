@@ -26,8 +26,8 @@ class Resize(object):
 
 
 class COCO_CaNet(FewShotInstData):
-    def __init__(self, coco_dir, subset, folds, n_shots, img_size=321, prob=0.7, normalize_mean=[0, 0, 0], normalize_std=[1, 1, 1]):
-        super(COCO_CaNet, self).__init__(coco_dir, subset, folds, n_shots, img_size=img_size)
+    def __init__(self, coco_dir, subset, folds, n_shots, img_size=321, exclude_list_file=None, prob=0.7, normalize_mean=[0, 0, 0], normalize_std=[1, 1, 1]):
+        super(COCO_CaNet, self).__init__(coco_dir, subset, folds, n_shots, img_size=img_size, exclude_list_file=exclude_list_file, resize_flag=False)
         all_cat_ids = self.coco.getCatIds()
 
         active_cat_ids = list()
@@ -58,7 +58,8 @@ class COCO_CaNet(FewShotInstData):
         query_inst_id = self.inst_ids[idx]
         query_inst = self.getInstByID(query_inst_id)
 
-        same_cat_inst_ids = self.coco.getAnnIds(catIds=query_inst["inst_cat_id"], iscrowd=False)
+        same_cat_inst_ids = self.cat_inst_ids[query_inst["inst_cat_id"]].copy()
+        same_cat_inst_ids.remove(query_inst_id)
         support_inst_ids = random.choices(same_cat_inst_ids, k=self.n_shots)
         support_insts = [self.getInstByID(inst_id) for inst_id in support_inst_ids]
 
