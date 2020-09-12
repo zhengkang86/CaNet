@@ -21,6 +21,8 @@ import sys
 sys.path.append(".")
 from coco_for_canet import COCO_CaNet
 
+import torchvision.transforms.functional as transforms_F
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-lr',
@@ -110,7 +112,7 @@ valloader = data.DataLoader(valset, batch_size=options.bs_val, shuffle=False, nu
                             drop_last=False)
 
 # save_pred_every = len(trainloader)
-save_pred_every = min(100, len(trainloader))
+save_pred_every = min(1000, len(trainloader))
 
 optimizer = optim.SGD([{'params': get_10x_lr_params(model), 'lr': 10 * learning_rate}],
                       lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
@@ -151,6 +153,21 @@ for epoch in range(0, num_epoch):
 
         pred = nn.functional.interpolate(pred, size=input_size, mode='bilinear', align_corners=True)  # upsample
 
+        # IMG_MEAN_UNNORM = -(torch.tensor(IMG_MEAN) / torch.tensor(IMG_STD)).to(support_rgb.device)
+        # IMG_STD_UNNORM = (torch.tensor([1, 1, 1]) / torch.tensor(IMG_STD)).to(support_rgb.device)
+        # pred_softmax = nn.functional.interpolate(pred_softmax, size=input_size, mode='bilinear', align_corners=True)  # upsample
+        # for j in range(support_mask.shape[0]):
+        #     s_rgb = transforms_F.normalize(support_rgb[j, ...], IMG_MEAN_UNNORM, IMG_STD_UNNORM).clamp(0, 1)
+        #     q_rgb = transforms_F.normalize(query_rgb[j, ...], IMG_MEAN_UNNORM, IMG_STD_UNNORM).clamp(0, 1)
+        #     fig, ax = plt.subplots(2, 3, figsize=(15, 10))
+        #     ax[0, 0].imshow(s_rgb.permute((1, 2, 0)).detach().cpu().numpy())
+        #     ax[0, 1].imshow(support_mask[j, 0, :, :].detach().cpu().numpy(), cmap='gray')
+        #     ax[1, 0].imshow(q_rgb.permute((1, 2, 0)).detach().cpu().numpy())
+        #     ax[1, 1].imshow(query_mask[j, :, :].detach().cpu().numpy(), cmap='gray')
+        #     ax[0, 2].imshow(pred_softmax[j, 0, :, :].detach().cpu().numpy(), cmap='gray')
+        #     ax[1, 2].imshow(pred_softmax[j, 1, :, :].detach().cpu().numpy(), cmap='gray')
+        #     plt.show()
+
         loss = loss_calc_v1(pred, query_mask, 0)
         loss.backward()
         optimizer.step()
@@ -165,6 +182,9 @@ for epoch in range(0, num_epoch):
             plot_loss(checkpoint_dir, loss_list, save_pred_every)
             np.savetxt(os.path.join(checkpoint_dir, 'loss_history.txt'), np.array(loss_list))
             temp_loss = 0
+
+    torch.save(model.cpu().state_dict(), osp.join(checkpoint_dir, 'model', 'epoch_{}.pth'.format(epoch)))
+    model.cuda()
 
     # # ======================evaluate now==================
     # with torch.no_grad():

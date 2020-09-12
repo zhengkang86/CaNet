@@ -74,6 +74,7 @@ class COCO_CaNet(FewShotInstData):
 
         query_rgb, query_mask = query_inst['roi'], query_inst['roi_mask']
         support_rgb, support_mask = support_insts[0]['roi'], support_insts[0]['roi_mask']
+        query_mask, support_mask = query_mask * 255, support_mask * 255
 
         # random scale and crop for support
         input_size = self.input_size[0]
